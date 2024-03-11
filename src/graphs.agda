@@ -1,45 +1,52 @@
 
 
 open import Relation.Binary using (Irreflexive; Decidable; Symmetric; Irrelevant)
+open import Data.Nat using (ℕ)
+open import Data.Nat.Base using (_/_)
+open import Data.Fin using (Fin)
 open import Relation.Binary.PropositionalEquality.Core using (_≡_)
+open import Agda.Builtin.Bool using (Bool)
+open import Relation.Nullary using (Dec)
+open import Data.Fin.Base using (toℕ)
+open import Data.Fin.Subset using (Subset)
+open import Data.Vec.Base using (Vec; tabulate; sum; allFin; countᵇ)
+
+open Dec
 
 record Graph : Set₁ where
   field
     V : Set
     E : V → V → Set
 
-    isIrreflexive : Irreflexive _≡_ E
-    isDecidable : Decidable E
-    isSymmetric : Symmetric E
-    isIrrelevant : Irrelevant E
+    isDecidableE : Decidable E
+    isIrreflexiveE : Irreflexive _≡_ E
+    isIrrelevantE : Irrelevant E
+    isSymmetricE : Symmetric E
+
+  Eᵇ : V → V → Bool
+  Eᵇ u v =  isDecidableE u v .does
+
 open Graph
 
+record EnumeratedFiniteGraph : Set₁ where
+  field
+    n : ℕ                          -- ( |V| , V : Fin n)
+    FiniteE : Fin n → Fin n → Set
 
+    isDecidableFiniteE : Decidable FiniteE
+    isIrreflexiveFiniteE : Irreflexive _≡_ FiniteE
+    isIrrelevantFiniteE : Irrelevant FiniteE
+    isSymmetricFiniteE : Symmetric FiniteE
 
+  FiniteEᵇ : Fin n → Fin n → Bool
+  FiniteEᵇ u v =  isDecidableFiniteE u v .does
 
+  deg : Fin n → ℕ
+  deg u = countᵇ (FiniteEᵇ u) (allFin n)
 
+  |E| : ℕ
+  |E| = sum (tabulate {n} deg)
+  
+open EnumeratedFiniteGraph
 
-
-{-
-
-defined in terms of an underlying equality (use propositional identity):
-Irreflexive : ∀ {a b ℓ₁ ℓ₂} {A : Set a} {B : Set b} →
-              REL A B ℓ₁ → REL A B ℓ₂ → Set _
-Irreflexive _≈_ _<_ = ∀ {x y} → x ≈ y → ¬ (x < y)
- 
-
-Decidable : ∀ {a b ℓ} {A : Set a} {B : Set b} → REL A B ℓ → Set _
-Decidable _∼_ = ∀ x y → Dec (x ∼ y)
-
-Sym : ∀ {a b ℓ₁ ℓ₂} {A : Set a} {B : Set b} →
-      REL A B ℓ₁ → REL B A ℓ₂ → Set _
-Sym P Q = P ⇒ flip Q
-
-Symmetric : ∀ {a ℓ} {A : Set a} → Rel A ℓ → Set _
-Symmetric _∼_ = Sym _∼_ _∼_
-
-Irrelevant : ∀ {a b ℓ} {A : Set a} {B : Set b} → REL A B ℓ → Set _
-Irrelevant _∼_ = ∀ {x y} (a : x ∼ y) (b : x ∼ y) → a ≡ b
-
--}
 
