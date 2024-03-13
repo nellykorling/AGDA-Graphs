@@ -62,7 +62,7 @@ data cycleE : (n : ℕ) → Fin n → Fin n → Set where
 cycleIrr : {n : ℕ} → {i j : Fin n} → i ≡ j → cycleE n i j → ⊥
 cycleIrr i≡j (sucRight n₁ i) = 1+n≢n {toℕ i} (trans (cong toℕ (sym (i≡j))) (toℕ-inject₁ i))
 cycleIrr i≡j (sucLeft n₁ i)  = 1+n≢n {toℕ i} (trans (cong toℕ      (i≡j))  (toℕ-inject₁ i))
-cycleIrr i≡j (zeroLast ℕ.zero) = {!⊥!}
+cycleIrr i≡j (zeroLast ℕ.zero) = {!!}
 cycleIrr i≡j (lastZero n₁)   = {!!} 
 
 cycleDec : (n : ℕ) → (i j : Fin n) → Dec (cycleE n i j)
