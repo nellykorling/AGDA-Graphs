@@ -3,17 +3,17 @@
 open import Relation.Binary using (Irreflexive; Decidable; Symmetric; Irrelevant)
 open import Data.Nat using (ℕ)
 open import Data.Nat.Base using (_/_)
-open import Data.Nat.Properties using (1+n≢n; 1+n≢0; 0≢1+n)
+open import Data.Nat.Properties using (1+n≢n; 1+n≢0; 0≢1+n; _≟_)
 open import Data.Fin using (Fin)
 open import Relation.Binary.PropositionalEquality.Core using (_≡_)
 open import Agda.Builtin.Bool using (Bool)
 open import Data.Empty using (⊥)
 open import Relation.Nullary using (Dec; yes; no)
-open import Data.Fin.Base using (toℕ; fromℕ; inject₁)
-open import Data.Fin.Properties using (toℕ-inject₁; _≟_)
+open import Data.Fin.Base using (toℕ; fromℕ; inject₁; cast)
+open import Data.Fin.Properties using (toℕ-inject₁; toℕ-fromℕ)
 open import Data.Fin.Subset using (Subset)
 open import Data.Vec.Base using (Vec; tabulate; sum; allFin; countᵇ)
-open import Relation.Binary.PropositionalEquality as P using (_≡_; _≢_; refl; sym; trans; cong; cong₂; subst; _≗_; module ≡-Reasoning)
+open import Relation.Binary.PropositionalEquality as P using (_≡_; refl; sym; trans; cong)
 
 open Dec
 
@@ -55,32 +55,27 @@ data cycleE : (n : ℕ) → Fin n → Fin n → Set where
 
   sucRight : ∀ (n : ℕ) (i : Fin n) → cycleE (ℕ.suc n) (inject₁ i) (Fin.suc i)
   sucLeft :  ∀ (n : ℕ) (i : Fin n) → cycleE (ℕ.suc n) (Fin.suc i) (inject₁ i)
-  zeroLast : ∀ (n : ℕ)             → cycleE (ℕ.suc n) (Fin.zero)  (fromℕ n)
-  lastZero : ∀ (n : ℕ)             → cycleE (ℕ.suc n) (fromℕ n)   (Fin.zero)
-
+  zeroLast : ∀ (n : ℕ)             → cycleE (ℕ.suc (ℕ.suc n)) (Fin.zero)        (fromℕ (ℕ.suc n))
+  lastZero : ∀ (n : ℕ)             → cycleE (ℕ.suc (ℕ.suc n)) (fromℕ (ℕ.suc n)) (Fin.zero)
 
 cycleIrr : {n : ℕ} → {i j : Fin n} → i ≡ j → cycleE n i j → ⊥
 cycleIrr i≡j (sucRight n₁ i) = 1+n≢n {toℕ i} (trans (cong toℕ (sym (i≡j))) (toℕ-inject₁ i))
-cycleIrr i≡j (sucLeft n₁ i)  = 1+n≢n {toℕ i} (trans (cong toℕ      (i≡j))  (toℕ-inject₁ i))
-cycleIrr i≡j (zeroLast ℕ.zero) = {!!}
-cycleIrr i≡j (lastZero n₁)   = {!!} 
+cycleIrr i≡j (sucLeft n₁ i)  = 1+n≢n {toℕ i} (trans (cong toℕ (i≡j)) (toℕ-inject₁ i))
+cycleIrr i≡j (zeroLast n₁)   = 0≢1+n {n₁}    (trans ((cong toℕ (i≡j))) (cong ℕ.suc (toℕ-fromℕ n₁)))
+cycleIrr i≡j (lastZero n₁)   = 1+n≢0 {n₁}    (trans (cong ℕ.suc (sym (toℕ-fromℕ n₁))) (cong toℕ (i≡j))) 
 
 cycleDec : (n : ℕ) → (i j : Fin n) → Dec (cycleE n i j)
-cycleDec (ℕ.suc ℕ.zero) i j = {!!}
-cycleDec (ℕ.suc (ℕ.suc n₁)) i j = {!!}
-
--- isDecidableE (cycle (ℕ.suc ℕ.zero)) Fin.zero Fin.zero = no {!!}
--- isDecidableE (cycle (ℕ.suc (ℕ.suc n₁))) Fin.zero y with y ≟ Fin.suc Fin.zero
--- ... | (yes y≡1) = yes {!sucRight _ Fin.zero !} 
--- ... | (no y≢1) = {!!}
--- isDecidableE (cycle (ℕ.suc (ℕ.suc n₁))) (Fin.suc x) y = {!!}
-
--- isDecidableE (cycle (ℕ.suc ℕ.zero)) Fin.zero Fin.zero = {!no !}
--- isDecidableE (cycle (ℕ.suc (ℕ.suc n₁))) Fin.zero Fin.zero = {!no !}
--- isDecidableE (cycle (ℕ.suc (ℕ.suc n₁))) Fin.zero (Fin.suc Fin.zero) = {!yes!}
--- isDecidableE (cycle (ℕ.suc (ℕ.suc n₁))) Fin.zero (Fin.suc (Fin.suc y)) = {!!}
--- isDecidableE (cycle (ℕ.suc (ℕ.suc n₁))) (Fin.suc x) Fin.zero = {!!}
--- isDecidableE (cycle (ℕ.suc (ℕ.suc n₁))) (Fin.suc x) (Fin.suc y) = {! !}
+cycleDec (ℕ.suc ℕ.zero)     Fin.zero Fin.zero = no (cycleIrr refl)
+cycleDec (ℕ.suc (ℕ.suc n₁)) Fin.zero Fin.zero = no (cycleIrr refl)
+cycleDec (ℕ.suc (ℕ.suc n₁)) Fin.zero (Fin.suc Fin.zero) = yes (sucRight (ℕ.suc n₁) Fin.zero)
+cycleDec (ℕ.suc (ℕ.suc n₁)) (Fin.suc Fin.zero) Fin.zero = yes (sucLeft  (ℕ.suc n₁) Fin.zero)
+cycleDec (ℕ.suc (ℕ.suc n₁)) Fin.zero (Fin.suc (Fin.suc j)) with n₁ ≟ (toℕ j)
+... | (yes n≡j) = yes {!zeroLast!}
+... | (no  n≢j) = no  {!!}
+cycleDec (ℕ.suc (ℕ.suc n₁)) (Fin.suc (Fin.suc i)) Fin.zero with n₁ ≟ (toℕ i)
+... | (yes n≡i) = {!lastZero!}
+... | (no  n≢i) = {!!}
+cycleDec (ℕ.suc (ℕ.suc n₁)) (Fin.suc i) (Fin.suc j) = {!!}  -- i = suc j (commutatively)
 
 cycleSym : {n : ℕ} → {i j : Fin n} → cycleE n i j → cycleE n j i
 cycleSym (sucRight n i) = sucLeft  n i
