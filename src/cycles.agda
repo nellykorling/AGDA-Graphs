@@ -1,102 +1,112 @@
 {-# OPTIONS --with-K #-}
 
 open import Data.Nat using (ℕ)
-open import Data.Nat.Base using (_/_; _*_)
+open import Data.Nat.Base using (_/_; _*_; _+_; _∸_)
 open import Data.Nat.Properties using (1+n≢n; 1+n≢0)
 open import Data.Fin using (Fin)
 open import Agda.Builtin.Bool using (Bool)
 open import Data.Empty using (⊥)
 open import Relation.Nullary using (Dec; yes; no)
-open import Data.Fin.Base using (toℕ; fromℕ; inject₁; cast)
-open import Data.Fin.Properties using (toℕ-inject₁; toℕ-fromℕ; _≟_)
+open import Data.Fin.Base using (toℕ; fromℕ; inject₁; cast; pred)
+open import Data.Fin.Properties using (toℕ-inject₁; toℕ-fromℕ; _≟_; 0≢1+n)
 open import Data.Vec.Base using (Vec; tabulate; sum; allFin; count)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst; _≢_)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Function.Base using (id)
 open import Relation.Nullary.Negation.Core using (_¬-⊎_)
+open import Relation.Nullary.Decidable.Core using (_⊎-dec_)
 open import Graphs
 open Dec
 open EnumeratedFiniteGraph
 
 
 
-cycleE : (n : ℕ) (i j : Fin n) → Set
-cycleE (ℕ.suc ℕ.zero) Fin.zero Fin.zero = ⊥
-cycleE (ℕ.suc (ℕ.suc n₁)) Fin.zero Fin.zero = ⊥
-cycleE (ℕ.suc (ℕ.suc n₁)) Fin.zero (Fin.suc j)  = (j ≡ Fin.zero) ⊎ (j ≡ fromℕ n₁)
-cycleE (ℕ.suc (ℕ.suc n₁)) (Fin.suc i) Fin.zero = (i ≡ Fin.zero) ⊎ (i ≡ fromℕ n₁)
-cycleE (ℕ.suc (ℕ.suc n₁)) (Fin.suc i) (Fin.suc j) = (inject₁ i ≡ Fin.suc j) ⊎ (Fin.suc i ≡ inject₁ j)
+minus1 : ∀ {n : ℕ} (i : Fin (3 + n)) → Fin (3 + n)
+minus1 {n} Fin.zero = fromℕ (2 + n)
+minus1 (Fin.suc i) = inject₁ i
 
 
 
-cycleIrr : ∀ (n : ℕ) (i j : Fin n) → i ≡ j → cycleE n i j → ⊥
-cycleIrr (ℕ.suc ℕ.zero) Fin.zero Fin.zero i≡j = id 
-cycleIrr (ℕ.suc (ℕ.suc n₁)) Fin.zero Fin.zero i≡j = id
-cycleIrr (ℕ.suc (ℕ.suc n₁)) (Fin.suc i) (Fin.suc j) i≡j (inj₁ x) = 1+n≢n {toℕ i} (trans (cong toℕ (trans (i≡j) (sym x))) (toℕ-inject₁ i))
-cycleIrr (ℕ.suc (ℕ.suc n₁)) (Fin.suc i) (Fin.suc j) i≡j (inj₂ y) = 1+n≢n {toℕ j} (trans (cong toℕ (trans (sym i≡j) (y))) (toℕ-inject₁ j))
+cycleE : ∀ (n : ℕ) (i j : Fin (3 + n)) → Set
+cycleE n i j = (j ≡ (minus1 i)) ⊎ (i ≡ (minus1 j))
 
 
 
-cycleSym : ∀ (n : ℕ) (i j : Fin n) → cycleE n i j → cycleE n j i
-cycleSym (ℕ.suc ℕ.zero) Fin.zero Fin.zero ()
-cycleSym (ℕ.suc ℕ.zero) Fin.zero (Fin.suc ()) e
-cycleSym (ℕ.suc ℕ.zero) (Fin.suc ()) Fin.zero e
-cycleSym (ℕ.suc ℕ.zero) (Fin.suc ()) (Fin.suc j) e
-cycleSym (ℕ.suc (ℕ.suc n₁)) Fin.zero (Fin.suc j) e = e 
-cycleSym (ℕ.suc (ℕ.suc n₁)) (Fin.suc i) Fin.zero e = e
-cycleSym (ℕ.suc (ℕ.suc n₁)) (Fin.suc i) (Fin.suc j) (inj₁ x) = inj₂ (sym x)
-cycleSym (ℕ.suc (ℕ.suc n₁)) (Fin.suc i) (Fin.suc j) (inj₂ y) = inj₁ (sym y)
+suc≢inject₁ : ∀ {n : ℕ} {i : Fin n} → Fin.suc i ≡ inject₁ i → ⊥
+suc≢inject₁ i+1≡i = 1+n≢n (trans (cong toℕ (i+1≡i)) (toℕ-inject₁ _))
 
 
 
-cycleDec : ∀ (n : ℕ) (i j : Fin n) → Dec (cycleE n i j)
-cycleDec (ℕ.suc ℕ.zero) Fin.zero Fin.zero = no id
-cycleDec (ℕ.suc (ℕ.suc n₁)) Fin.zero Fin.zero = no id
+cycleIrr : ∀ (n : ℕ) (i j : Fin (3 + n)) → i ≡ j → cycleE n i j → ⊥
+cycleIrr ℕ.zero Fin.zero Fin.zero i≡j (inj₁ ())
+cycleIrr ℕ.zero Fin.zero Fin.zero i≡j (inj₂ ())
+cycleIrr ℕ.zero (Fin.suc i) (Fin.suc j) i≡j (inj₁ x) = suc≢inject₁ (trans i≡j x)
+cycleIrr ℕ.zero (Fin.suc i) (Fin.suc j) i≡j (inj₂ y) = suc≢inject₁ (trans (sym i≡j) y)
+cycleIrr (ℕ.suc n₁) Fin.zero Fin.zero i≡j (inj₁ ())
+cycleIrr (ℕ.suc n₁) Fin.zero Fin.zero i≡j (inj₂ ())
+cycleIrr (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) i≡j (inj₁ x) = suc≢inject₁ (trans i≡j x)
+cycleIrr (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) i≡j (inj₂ y) = suc≢inject₁ (trans (sym i≡j) y)
 
-cycleDec (ℕ.suc (ℕ.suc n₁)) Fin.zero (Fin.suc Fin.zero) = yes (inj₁ refl)
-cycleDec (ℕ.suc (ℕ.suc n₁)) Fin.zero (Fin.suc (Fin.suc j)) with Fin.suc j ≟ fromℕ n₁
+
+
+cycleSym : ∀ (n : ℕ) (i j : Fin (3 + n)) → cycleE n i j → cycleE n j i
+cycleSym ℕ.zero Fin.zero (Fin.suc j) (inj₁ x) = inj₂ x
+cycleSym ℕ.zero Fin.zero (Fin.suc Fin.zero) (inj₂ y) = inj₁ y
+cycleSym ℕ.zero (Fin.suc Fin.zero) Fin.zero (inj₁ x) = inj₂ x
+cycleSym ℕ.zero (Fin.suc i) Fin.zero (inj₂ y) = inj₁ y
+cycleSym ℕ.zero (Fin.suc i) (Fin.suc j) (inj₁ x) = inj₂ x
+cycleSym ℕ.zero (Fin.suc i) (Fin.suc j) (inj₂ y) = inj₁ y
+cycleSym (ℕ.suc n₁) Fin.zero (Fin.suc j) (inj₁ x) = inj₂ x
+cycleSym (ℕ.suc n₁) Fin.zero (Fin.suc j) (inj₂ y) = inj₁ y
+cycleSym (ℕ.suc n₁) (Fin.suc i) Fin.zero (inj₁ x) = inj₂ x
+cycleSym (ℕ.suc n₁) (Fin.suc i) Fin.zero (inj₂ y) = inj₁ y
+cycleSym (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) (inj₁ x) = inj₂ x
+cycleSym (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) (inj₂ y) = inj₁ y
+
+
+
+cycleDec : ∀ (n : ℕ) (i j : Fin (3 + n)) → Dec (cycleE n i j)
+cycleDec ℕ.zero Fin.zero Fin.zero = no (cycleIrr ℕ.zero Fin.zero Fin.zero refl)
+cycleDec ℕ.zero Fin.zero (Fin.suc Fin.zero) = yes (inj₂ refl)
+cycleDec ℕ.zero Fin.zero (Fin.suc (Fin.suc j)) with (Fin.suc (Fin.suc j)) ≟ fromℕ 2
+... | (yes j≡n) = yes (inj₁ j≡n)
+... | (no j≢n) = no (j≢n ¬-⊎ 0≢1+n)
+
+cycleDec ℕ.zero (Fin.suc Fin.zero) Fin.zero = yes (inj₁ refl)
+cycleDec ℕ.zero (Fin.suc (Fin.suc i)) Fin.zero with (Fin.suc (Fin.suc i)) ≟ fromℕ 2
 ... | (yes j≡n) = yes (inj₂ j≡n)
-... | (no j≢n) = no ((λ x → 1+n≢0 (cong toℕ x)) ¬-⊎ j≢n)
+... | (no j≢n) = no (0≢1+n ¬-⊎ j≢n)
 
-cycleDec (ℕ.suc (ℕ.suc n₁)) (Fin.suc Fin.zero) Fin.zero = yes (inj₁ refl)
-cycleDec (ℕ.suc (ℕ.suc n₁)) (Fin.suc (Fin.suc i)) Fin.zero with Fin.suc i ≟ fromℕ n₁
-... | (yes i≡n) = yes (inj₂ i≡n)
-... | (no i≢n) = no ((λ x →  1+n≢0 (cong toℕ x)) ¬-⊎ i≢n)
+cycleDec ℕ.zero (Fin.suc i) (Fin.suc j) with (Fin.suc j ≟ inject₁ i) ⊎-dec (Fin.suc i ≟ inject₁ j)
+... | i+1⊎j+1 = i+1⊎j+1
 
-cycleDec (ℕ.suc (ℕ.suc n₁)) (Fin.suc i) (Fin.suc j) with (inject₁ i ≟ Fin.suc j) | (Fin.suc i ≟ inject₁ j) 
-... | (yes e) | _       = yes (inj₁ e)
-... | _       | (yes f) = yes (inj₂ f)
-... | (no ¬e) | (no ¬f) = no (¬e ¬-⊎ ¬f)
+cycleDec (ℕ.suc n₁) Fin.zero Fin.zero = no (cycleIrr (ℕ.suc n₁) Fin.zero Fin.zero refl)
+cycleDec (ℕ.suc n₁) Fin.zero (Fin.suc Fin.zero) = yes (inj₂ refl)
+cycleDec (ℕ.suc n₁) Fin.zero (Fin.suc (Fin.suc j)) with (Fin.suc (Fin.suc j)) ≟ fromℕ (3 + n₁)
+... | (yes j≡n) = yes (inj₁ j≡n)
+... | (no j≢n) = no (j≢n ¬-⊎ 0≢1+n)
+
+cycleDec (ℕ.suc n₁) (Fin.suc Fin.zero) Fin.zero = yes (inj₁ refl)
+cycleDec (ℕ.suc n₁) (Fin.suc (Fin.suc i)) Fin.zero with (Fin.suc (Fin.suc i)) ≟ fromℕ (3 + n₁)
+... | (yes j≡n) = yes (inj₂ j≡n)
+... | (no j≢n) = no (0≢1+n ¬-⊎ j≢n)
+
+cycleDec (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) with (Fin.suc j ≟ inject₁ i) ⊎-dec (Fin.suc i ≟ inject₁ j)
+... | i+1⊎j+1 = i+1⊎j+1
 
 
 
-cycle : ℕ → EnumeratedFiniteGraph
-cycle n = record
-           { n = n
+3+_cycle : ℕ → EnumeratedFiniteGraph
+3+ n cycle = record
+           { n = 3 + n
            ; FiniteE = cycleE n
            ; isDecidableE = cycleDec n
-           ; isIrreflexiveE = cycleIrr n {!!} {!!}
-           ; isSymmetricE = cycleSym n {!!} {!!}
+           ; isIrreflexiveE = cycleIrr n _ _
+           ; isSymmetricE = cycleSym n _ _
            }
 
 
 
-degCycleN : ∀ (n : ℕ) (u : Fin n) → deg (cycle n) u ≡ 2
-degCycleN n u = {!!} 
-
-cycle|E| : ∀ (n : ℕ) → 2|E| (cycle n) ≡ n * 2
-cycle|E|  ℕ.zero    = refl        
-cycle|E| (ℕ.suc n₁) = {!!} 
-
-
-
-
--- deg (cycle 5) Fin.zero 
-
-{- deg : Fin n → ℕ
-   deg u = countᵇ (FiniteEᵇ u) (allFin n)
-
-   2|E| : ℕ
-   2|E| = sum (tabulate {n} deg) -}
-
-
+cycle|E| : ∀ (n : ℕ) → 2|E| (3+ n cycle) ≡ (3 + n) * 2
+cycle|E| ℕ.zero = refl
+cycle|E| (ℕ.suc n₁) = {!!}
