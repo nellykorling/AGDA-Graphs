@@ -12,13 +12,18 @@ open import Data.Fin.Properties using (toℕ-inject₁; toℕ-fromℕ; _≟_; 0�
 open import Data.Vec.Base using (Vec; tabulate; sum; allFin; count)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst; _≢_)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Product.Base using (_×_)
 open import Function.Base using (id)
 open import Relation.Nullary.Negation.Core using (_¬-⊎_)
 open import Relation.Nullary.Decidable.Core using (_⊎-dec_)
+open import Function.Bundles using (_⤖_)
+open import Relation.Unary using (Pred; Decidable)
+open import Level using (Level)
 open import Graphs
 open Dec
 open EnumeratedFiniteGraph
 
+module Cycles where
 
 
 minus1 : ∀ {n : ℕ} (i : Fin (3 + n)) → Fin (3 + n)
@@ -107,6 +112,3 @@ cycleDec (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) with (Fin.suc j ≟ inject₁ i)
 
 
 
-cycle|E| : ∀ (n : ℕ) → 2|E| (3+ n cycle) ≡ (3 + n) * 2
-cycle|E| ℕ.zero = refl
-cycle|E| (ℕ.suc n₁) = {!!}

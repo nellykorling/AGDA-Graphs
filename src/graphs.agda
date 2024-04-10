@@ -14,40 +14,38 @@ open Dec
 
 module Graphs where
 
-  record Graph : Set₁ where
-    field
-      V : Set
-      E : V → V → Set
+record Graph : Set₁ where
+  field
+    V : Set
+    E : V → V → Set
 
-      isDecidableE   : Decidable E
-      isIrreflexiveE : Irreflexive _≡_ E
-      isSymmetricE   : Symmetric E
-      -- isIrrelevantE : Irrelevant E
+    isDecidableE   : Decidable E
+    isIrreflexiveE : Irreflexive _≡_ E
+    isSymmetricE   : Symmetric E
 
-    Eᵇ : V → V → Bool
-    Eᵇ u v =  isDecidableE u v .does
+  Eᵇ : V → V → Bool
+  Eᵇ u v =  isDecidableE u v .does
 
-  record EnumeratedFiniteGraph : Set₁ where
-    field
-      n : ℕ                         -- ( |V| , V : Fin n)
-      FiniteE : Fin n → Fin n → Set
+record EnumeratedFiniteGraph : Set₁ where
+  field
+    n : ℕ                         -- ( |V| , V : Fin n)
+    FiniteE : Fin n → Fin n → Set
 
-      isDecidableE   : Decidable FiniteE
-      isIrreflexiveE : Irreflexive _≡_ FiniteE
-      isSymmetricE   : Symmetric FiniteE
-      -- isIrrelevantE : Irrelevant FiniteE
+    isDecidableE   : Decidable FiniteE
+    isIrreflexiveE : Irreflexive _≡_ FiniteE
+    isSymmetricE   : Symmetric FiniteE
 
-    FiniteEᵇ : Fin n → Fin n → Bool
-    FiniteEᵇ u v =  isDecidableE u v .does
+  FiniteEᵇ : Fin n → Fin n → Bool
+  FiniteEᵇ u v =  isDecidableE u v .does
 
-    deg : Fin n → ℕ
-    deg u = count (isDecidableE u) (allFin n)
+  deg : Fin n → ℕ
+  deg u = count (isDecidableE u) (allFin n)
 
-    2|E| : ℕ
-    2|E| = sum (tabulate {n} deg)
+  2|E| : ℕ
+  2|E| = sum (tabulate {n} deg)
 
-    |E| : ℕ
-    |E| = 2|E| / 2
+  |E| : ℕ
+  |E| = 2|E| / 2
 
 
 
