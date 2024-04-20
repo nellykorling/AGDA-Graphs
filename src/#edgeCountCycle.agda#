@@ -97,8 +97,8 @@ add (ℕ.suc n) m = cong ℕ.suc (add n m)
 
 sub : ∀ (n m : ℕ) → ℕ.suc (n ∸ m) ≡ (ℕ.suc n) ∸ m
 sub n ℕ.zero = refl 
-sub ℕ.zero (ℕ.suc m) = ?
-sub (ℕ.suc n₁) (ℕ.suc m) = ?
+sub ℕ.zero (ℕ.suc m) = {!!}
+sub (ℕ.suc n₁) (ℕ.suc m) = {!!}
 
 
 

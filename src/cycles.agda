@@ -25,21 +25,20 @@ open EnumeratedFiniteGraph
 
 module Cycles where
 
+infix 6 _minus1
 
-minus1 : ∀ {n : ℕ} (i : Fin (3 + n)) → Fin (3 + n)
-minus1 {n} Fin.zero = fromℕ (2 + n)
-minus1 (Fin.suc i) = inject₁ i
 
+_minus1 : ∀ {n : ℕ} (i : Fin (3 + n)) → Fin (3 + n)
+_minus1 {n} Fin.zero = fromℕ (2 + n)
+_minus1 (Fin.suc i) = inject₁ i
 
 
 cycleE : ∀ (n : ℕ) (i j : Fin (3 + n)) → Set
-cycleE n i j = (j ≡ (minus1 i)) ⊎ (i ≡ (minus1 j))
-
+cycleE n i j = (j ≡ (i minus1)) ⊎ (i ≡ (j minus1))
 
 
 suc≢inject₁ : ∀ {n : ℕ} {i : Fin n} → Fin.suc i ≡ inject₁ i → ⊥
 suc≢inject₁ i+1≡i = 1+n≢n (trans (cong toℕ (i+1≡i)) (toℕ-inject₁ _))
-
 
 
 cycleIrr : ∀ (n : ℕ) (i j : Fin (3 + n)) → i ≡ j → cycleE n i j → ⊥
@@ -51,7 +50,6 @@ cycleIrr (ℕ.suc n₁) Fin.zero Fin.zero i≡j (inj₁ ())
 cycleIrr (ℕ.suc n₁) Fin.zero Fin.zero i≡j (inj₂ ())
 cycleIrr (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) i≡j (inj₁ x) = suc≢inject₁ (trans i≡j x)
 cycleIrr (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) i≡j (inj₂ y) = suc≢inject₁ (trans (sym i≡j) y)
-
 
 
 cycleSym : ∀ (n : ℕ) (i j : Fin (3 + n)) → cycleE n i j → cycleE n j i
@@ -67,7 +65,6 @@ cycleSym (ℕ.suc n₁) (Fin.suc i) Fin.zero (inj₁ x) = inj₂ x
 cycleSym (ℕ.suc n₁) (Fin.suc i) Fin.zero (inj₂ y) = inj₁ y
 cycleSym (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) (inj₁ x) = inj₂ x
 cycleSym (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) (inj₂ y) = inj₁ y
-
 
 
 cycleDec : ∀ (n : ℕ) (i j : Fin (3 + n)) → Dec (cycleE n i j)
@@ -98,7 +95,6 @@ cycleDec (ℕ.suc n₁) (Fin.suc (Fin.suc i)) Fin.zero with (Fin.suc (Fin.suc i)
 
 cycleDec (ℕ.suc n₁) (Fin.suc i) (Fin.suc j) with (Fin.suc j ≟ inject₁ i) ⊎-dec (Fin.suc i ≟ inject₁ j)
 ... | i+1⊎j+1 = i+1⊎j+1
-
 
 
 3+_cycle : ℕ → EnumeratedFiniteGraph

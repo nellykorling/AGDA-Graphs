@@ -26,6 +26,7 @@ record Graph : Set₁ where
   Eᵇ : V → V → Bool
   Eᵇ u v =  isDecidableE u v .does
 
+
 record EnumeratedFiniteGraph : Set₁ where
   field
     n : ℕ                         -- ( |V| , V : Fin n)
