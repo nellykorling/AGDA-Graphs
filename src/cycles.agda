@@ -1,32 +1,25 @@
 {-# OPTIONS --with-K #-}
 
-open import Data.Nat using (ℕ)
-open import Data.Nat.Base using (_/_; _*_; _+_; _∸_)
-open import Data.Nat.Properties using (1+n≢n; 1+n≢0)
+open import Data.Nat using (ℕ; _+_)
+open import Data.Nat.Properties using (1+n≢n)
 open import Data.Fin using (Fin)
-open import Agda.Builtin.Bool using (Bool)
 open import Data.Empty using (⊥)
 open import Relation.Nullary using (Dec; yes; no)
-open import Data.Fin.Base using (toℕ; fromℕ; inject₁; cast; pred)
-open import Data.Fin.Properties using (toℕ-inject₁; toℕ-fromℕ; _≟_; 0≢1+n)
-open import Data.Vec.Base using (Vec; tabulate; sum; allFin; count)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst; _≢_)
+open import Data.Fin.Base using (toℕ; fromℕ; inject₁)
+open import Data.Fin.Properties using (toℕ-inject₁; _≟_; 0≢1+n)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Product.Base using (_×_)
-open import Function.Base using (id)
 open import Relation.Nullary.Negation.Core using (_¬-⊎_)
 open import Relation.Nullary.Decidable.Core using (_⊎-dec_)
-open import Function.Bundles using (_⤖_)
-open import Relation.Unary using (Pred; Decidable)
-open import Level using (Level)
 open import Graphs
 open Dec
 open EnumeratedFiniteGraph
 
+
 module Cycles where
 
-infix 6 _minus1
 
+infix 6 _minus1
 
 _minus1 : ∀ {n : ℕ} (i : Fin (3 + n)) → Fin (3 + n)
 _minus1 {n} Fin.zero = fromℕ (2 + n)

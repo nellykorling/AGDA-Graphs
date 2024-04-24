@@ -6,13 +6,13 @@ open import Data.Nat.Base using (_/_)
 open import Data.Fin using (Fin)
 open import Agda.Builtin.Bool using (Bool)
 open import Relation.Nullary using (Dec)
-open import Data.Fin.Base using (toℕ; fromℕ; inject₁; cast)
 open import Data.Vec.Base using (Vec; tabulate; sum; allFin; count)
 open import Relation.Binary.PropositionalEquality using (_≡_)
-
 open Dec
 
+
 module Graphs where
+
 
 record Graph : Set₁ where
   field
