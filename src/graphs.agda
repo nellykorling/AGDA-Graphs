@@ -19,9 +19,9 @@ record Graph : Set₁ where
     V : Set
     E : V → V → Set
 
-    isDecidableE   : Decidable E
     isIrreflexiveE : Irreflexive _≡_ E
     isSymmetricE   : Symmetric E
+    isDecidableE   : Decidable E
 
   Eᵇ : V → V → Bool
   Eᵇ u v =  isDecidableE u v .does
@@ -32,9 +32,9 @@ record EnumeratedFiniteGraph : Set₁ where
     n : ℕ                         -- ( |V| , V : Fin n)
     FiniteE : Fin n → Fin n → Set
 
-    isDecidableE   : Decidable FiniteE
     isIrreflexiveE : Irreflexive _≡_ FiniteE
     isSymmetricE   : Symmetric FiniteE
+    isDecidableE   : Decidable FiniteE
 
   FiniteEᵇ : Fin n → Fin n → Bool
   FiniteEᵇ u v =  isDecidableE u v .does
