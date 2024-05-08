@@ -2,28 +2,22 @@
 
 open import Data.Nat using (ℕ)
 open import Data.Nat.Base using (_/_; _*_; _+_; _∸_; _≤_; z≤n; s≤s)
-open import Data.Nat.Properties using (+-∸-assoc; +-suc; m≤n⇒m≤1+n; ≤-trans; ≤-refl)
+open import Data.Nat.Properties using (+-∸-assoc; +-suc; ≤-trans; m≤n⇒m≤1+n)
 open import Data.Fin using (Fin)
-open import Agda.Builtin.Bool using (Bool; false)
+open import Data.Fin.Base using (fromℕ; inject₁)
+open import Data.Fin.Properties using (_≟_; 0≢1+n; fromℕ≢inject₁; inject₁-injective; suc-injective)
+open import Data.Vec.Base using (Vec; tabulate; allFin; count)
 open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Product.Base using (_×_; proj₁; proj₂; _,_)
 open import Relation.Nullary using (Dec; yes; no)
-open import Data.Fin.Base using (fromℕ; inject₁; toℕ)
-open import Data.Fin.Properties using (_≟_; 0≢1+n; suc-injective; fromℕ≢inject₁; inject₁-injective; toℕ-inject₁)
-open import Data.Vec.Base using (Vec; tabulate; allFin; count; sum; replicate)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; _≢_; trans)
-open import Data.Product.Base using (_×_; proj₁; proj₂; _,_; ∃; ∃-syntax)
-open import Function.Base using (id)
 open import Relation.Nullary.Decidable.Core using (_⊎-dec_; _×-dec_)
-open import Relation.Unary using (Pred; Decidable; _⊆_)
+open import Relation.Unary using (Pred; Decidable)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong)
+open import Function.Base using (id; _∘_)
 open import Level using (Level)
-open import Function.Base using (_∘_)
-import Relation.Binary.PropositionalEquality as Eq
-open Eq.≡-Reasoning
-open import miscLemmas using (suc≢inject₁; last≢inject₁; emptyDec; _≐_; 1+m+n≤m+1+n)
-open import Graphs using (EnumeratedFiniteGraph)
-open import Cycles using (_minus1; cycleE; 3+_cycle; cycleDec')
-open Dec
-open EnumeratedFiniteGraph
+open import MiscLemmas using (last≢inject₁; _≐_; 1+m+n≤m+1+n)
+open import Cycles using (_minus1)
+open Relation.Binary.PropositionalEquality.≡-Reasoning
 open Vec
 
 
@@ -34,30 +28,6 @@ private
   variable
     a p q : Level
     A B : Set a
-   
-
-2+n≢n : ∀ {n : ℕ} → ℕ.suc (ℕ.suc n) ≢ n
-2+n≢n {ℕ.zero} = {!!}
-2+n≢n {ℕ.suc ℕ.zero} = {!!}
-2+n≢n {ℕ.suc (ℕ.suc n₁)} = 2+n≢n ∘ Data.Nat.Properties.suc-injective
-
-{- 1+n≢n : suc n ≢ n
-1+n≢n {suc n} = 1+n≢n ∘ suc-injective -}
-
-sucsuc≢inject₁inject₁ : ∀ {n : ℕ} {i : Fin n} → Fin.suc (Fin.suc i) ≡ inject₁ (inject₁ i) → ⊥
-sucsuc≢inject₁inject₁ {n} {i} 2+i≡i = 2+n≢n (trans (cong toℕ (2+i≡i)) ({!toℕ-inject₁ ?!}))
-
-
--- 1+n≢n (trans (cong toℕ (1+i≡i)) (toℕ-inject₁ _))
-
-
-j≡i-1×i≡j-1 : ∀ (n : ℕ) (i j : Fin (3 + n)) → (j ≡ (i minus1) × i ≡ (j minus1)) → ⊥
-j≡i-1×i≡j-1 ℕ.zero Fin.zero (Fin.suc .(fromℕ 1)) (refl , ())
-j≡i-1×i≡j-1 ℕ.zero (Fin.suc .(fromℕ 1)) Fin.zero (() , refl)
-j≡i-1×i≡j-1 ℕ.zero (Fin.suc (Fin.suc i)) (Fin.suc .(inject₁ i)) (refl , snd) = sucsuc≢inject₁inject₁ snd
-j≡i-1×i≡j-1 (ℕ.suc n₁) Fin.zero (Fin.suc .(fromℕ (ℕ.suc (ℕ.suc n₁)))) (refl , ())
-j≡i-1×i≡j-1 (ℕ.suc n₁) (Fin.suc .(fromℕ (ℕ.suc (ℕ.suc n₁)))) Fin.zero (() , refl)
-j≡i-1×i≡j-1 (ℕ.suc n₁) (Fin.suc (Fin.suc i)) (Fin.suc .(inject₁ i)) (refl , snd) = sucsuc≢inject₁inject₁ snd
 
 
 countExt : {n : ℕ} {P Q : Pred A p} (P? : Decidable P) (Q? : Decidable Q) → (P ≐ Q) → ∀ (xs : Vec A n) → count P? xs ≡ count Q? xs
@@ -74,11 +44,6 @@ compLemma P? f {ℕ.zero} g = refl
 compLemma P? f {ℕ.suc n₁} g with P? (f (g Fin.zero))
 ... | yes Pfg0 = cong ℕ.suc (compLemma P? f (g ∘ Fin.suc))
 ... | no ¬Pfg0 = compLemma P? f (g ∘ Fin.suc)
-
-
-count0 : ∀ (n : ℕ) (xs : Vec A n) → count (λ _ → emptyDec) xs ≡ 0 
-count0 ℕ.zero [] = refl
-count0 (ℕ.suc n₁) (x ∷ xs) = count0 n₁ xs
 
 
 ∀x⊥-count0 : {P : Pred A p} (P? : Decidable P) {n : ℕ} (xs : Vec A n) → (∀ x → P x → ⊥) → count P? xs ≡ 0
@@ -176,7 +141,7 @@ countf1 n₁ (Fin.suc (Fin.suc i)) with i ≟ fromℕ n₁
                     ≡⟨ countExt (i' ≟_) (_≟ i') ((λ i'≡j → sym i'≡j) , λ j≡i' → sym j≡i') (allFin n₁) ⟩
                       count (_≟ i') (allFin n₁)
                     ≡⟨ count1 n₁ i' ⟩
-                       1
+                      1
                     ∎
 
 
@@ -218,67 +183,3 @@ count⊎ P? Q? (x ∷ xs) with P? x | Q? x
                            count P? xs + ℕ.suc (count Q? xs) ∸ count (λ x₁ → P? x₁ ×-dec Q? x₁) xs
                          ∎
 ... | no ¬Px | no ¬Qx = count⊎ P? Q? xs
-
-
-degCycleN : ∀ {n : ℕ} (u : Fin (3 + n)) → deg (3+ n cycle) u ≡ 2
-degCycleN {n} u = let P = λ v → (v ≟ (u minus1)) in
-                let Q = λ v → (u ≟ (v minus1)) in
-                let P⊎Q = λ v → ((v ≟ (u minus1)) ⊎-dec (u ≟ (v minus1))) in
-                let P×Q = λ v → ((v ≟ (u minus1)) ×-dec (u ≟ (v minus1))) in
-                let allFin = allFin (3 + n) in
-                 begin
-                   deg (3+ n cycle) u
-                 ≡⟨⟩
-                   count (cycleDec' n u) allFin
-                 ≡⟨⟩
-                   count P⊎Q allFin
-                 ≡⟨ count⊎ P Q allFin ⟩
-                   count P allFin + count Q allFin ∸ count P×Q allFin
-                 ≡⟨ cong (λ x → x + count Q allFin ∸ count P×Q allFin) (count1 (3 + n) (u minus1)) ⟩
-                   1 + count Q allFin ∸ count P×Q allFin
-                 ≡⟨ cong (λ x → 1 + x ∸ count P×Q allFin) (countf1 n u) ⟩
-                   1 + 1 ∸ count P×Q allFin
-                 ≡⟨ cong (2 ∸_) (∀x⊥-count0 P×Q allFin (j≡i-1×i≡j-1 n u)) ⟩ 
-                   2
-                 ∎
-
-
-sumLemma : ∀ (n k : ℕ) → sum (tabulate {n} (λ _ → k)) ≡ n * k
-sumLemma ℕ.zero k = refl
-sumLemma (ℕ.suc n₁) k rewrite sumLemma n₁ k = refl
-
-sumLemma1 : ∀ (n k : ℕ) → tabulate {n} (λ _ → k) ≡ replicate n k
-sumLemma1 ℕ.zero k = refl
-sumLemma1 (ℕ.suc n₁) k rewrite sumLemma1 n₁ k = refl
-
-
-tabulate-replicate : ∀ (n k : ℕ) (f : Fin n → ℕ) → (∀ (u : Fin n) → f u ≡ k) → tabulate {n} f ≡ replicate n k
-tabulate-replicate ℕ.zero k f f≡k = refl
-tabulate-replicate (ℕ.suc n₁) k f f≡k = {!!}
-
-
--- begin
-                                        --   f Fin.zero ∷ tabulate {n₁} (λ x → f (Fin.suc x))
-                                        -- ≡⟨ {!!} ⟩
-                                        --   k ∷ tabulate {n₁} (λ x → f (Fin.suc x))
-                                        -- ≡⟨ {!!} ⟩ 
-                                        --   k ∷ replicate n₁ k
-                                        -- ∎
-
-
-sumLemma2 : ∀ (n k : ℕ) →  sum (replicate n k) ≡ n * k
-sumLemma2 ℕ.zero k = refl
-sumLemma2 (ℕ.suc n₁) k rewrite sumLemma2 n₁ k = refl
-
-
-cycle|E| : ∀ (n : ℕ) → 2|E| (3+ n cycle) ≡ (3 + n) * 2
-cycle|E| n = begin
-               2|E| (3+ n cycle)
-             ≡⟨⟩
-               sum (tabulate {3 + n} (deg (3+ n cycle)))
-             ≡⟨ cong sum (tabulate-replicate (3 + n) 2 (deg (3+ n cycle)) degCycleN) ⟩
-               sum (replicate (3 + n) 2)
-             ≡⟨ sumLemma2 (3 + n) 2 ⟩ 
-               (3 + n) * 2
-             ∎
-         

@@ -1,71 +1,50 @@
 {-# OPTIONS --with-K #-}
 
 open import Data.Nat using (ℕ)
-open import Data.Nat.Base using (_/_; _*_; _+_; _∸_; _≤_; z≤n; s≤s)
-open import Data.Nat.Properties using (+-∸-assoc; +-suc)
+open import Data.Nat.Base using (_+_; _∸_; _*_)
 open import Data.Fin using (Fin)
-open import Agda.Builtin.Bool using (Bool; false)
-open import Data.Empty using (⊥; ⊥-elim)
-open import Relation.Nullary using (Dec; yes; no)
-open import Data.Fin.Base using (fromℕ; inject₁)
-open import Data.Fin.Properties using (_≟_; 0≢1+n; suc-injective; fromℕ≢inject₁; inject₁-injective)
-open import Data.Vec.Base using (Vec; tabulate; allFin; count)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; _≢_)
-open import Data.Product.Base using (_×_; proj₁; proj₂; _,_; ∃; ∃-syntax)
-open import Function.Base using (id)
+open import Data.Fin.Properties using (_≟_)
+open import Data.Vec.Base using (tabulate; allFin; count; sum; replicate)
 open import Relation.Nullary.Decidable.Core using (_⊎-dec_; _×-dec_)
-open import Relation.Unary using (Pred; Decidable; _⊆_)
-open import Level using (Level)
-open import Function.Base using (_∘_)
-import Relation.Binary.PropositionalEquality as Eq
-open Eq.≡-Reasoning
-open import miscLemmas using (last≢inject₁; emptyDec)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong)
+open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Graphs using (EnumeratedFiniteGraph)
-open import Cycles using (_minus1; cycleE; cycleDec'; 3+_cycle)
-open import countLemmas
-open Dec
+open import Cycles using (_minus1; cycleDecidable; 3+_cycle; ¬j≡i-1×i≡j-1)
+open import countLemmas using (∀x⊥-count0; count1; countf1; count⊎)
+open import MiscLemmas using (sumReplicate; tabulate-replicate)
 open EnumeratedFiniteGraph
-open Vec
 
 
-
-degCycleN : ∀ (n : ℕ) (u : Fin (3 + n)) → deg (3+ n cycle) u ≡ 2
-degCycleN n u = begin
+degCycleN : ∀ {n : ℕ} (u : Fin (3 + n)) → deg (3+ n cycle) u ≡ 2
+degCycleN {n} u = let P = λ v → (v ≟ (u minus1)) in
+                let Q = λ v → (u ≟ (v minus1)) in
+                let P⊎Q = λ v → ((v ≟ (u minus1)) ⊎-dec (u ≟ (v minus1))) in
+                let P×Q = λ v → ((v ≟ (u minus1)) ×-dec (u ≟ (v minus1))) in
+                let allFin = allFin (3 + n) in
+                 begin
                    deg (3+ n cycle) u
                  ≡⟨⟩
-                   count (cycleDec' n u) (allFin (3 + n))
+                   count (cycleDecidable n u) allFin
                  ≡⟨⟩
-                   count (λ v → ((v ≟ (u minus1)) ⊎-dec (u ≟ (v minus1)))) (allFin (3 + n)) 
-                 ≡⟨ count⊎ (λ v → (v ≟ (u minus1))) (λ v → (u ≟ (v minus1))) (allFin (3 + n))⟩
-                   count (λ v → (v ≟ (u minus1))) (allFin (3 + n)) + count (λ v → (u ≟ (v minus1))) (allFin (3 + n)) ∸ count (λ v → ((v ≟ (u minus1)) ×-dec (u ≟ (v minus1)))) (allFin (3 + n))
-                 ≡⟨ cong
-                     (λ x →
-                        x + count (λ v → u ≟ v minus1) (allFin (3 + n)) ∸
-                        count (λ v → v ≟ u minus1 ×-dec u ≟ v minus1) (allFin (3 + n)))
-                     (count1 (3 + n) (u minus1)) ⟩
-                   1 + count (λ v → (u ≟ (v minus1))) (allFin (3 + n)) ∸ count (λ v → ((v ≟ (u minus1)) ×-dec (u ≟ (v minus1)))) (allFin (3 + n))
-                 ≡⟨ cong
-                     (λ x →
-                        1 + x ∸
-                        count (λ v → v ≟ u minus1 ×-dec u ≟ v minus1) (allFin (3 + n)))
-                     (countf1' n u) ⟩
-                   1 + 1 ∸ count (λ v → ((v ≟ (u minus1)) ×-dec (u ≟ (v minus1)))) (allFin (3 + n))
-                 ≡⟨ cong (2 ∸_) (countExt (λ v → ((v ≟ (u minus1)) ×-dec (u ≟ (v minus1)))) (λ _ → emptyDec) ((lemma' n u _) , ⊥-elim) (allFin (3 + n)))  ⟩
-                   2 ∸ count (λ _ → emptyDec) (allFin (3 + n))
-                 ≡⟨ cong (2 ∸_) (count0 (3 + n) (allFin (3 + n))) ⟩     
-                   2
+                   count P⊎Q allFin
+                 ≡⟨ count⊎ P Q allFin ⟩
+                   count P allFin + count Q allFin ∸ count P×Q allFin
+                 ≡⟨ cong (λ x → x + count Q allFin ∸ count P×Q allFin) (count1 (3 + n) (u minus1)) ⟩
+                   1 + count Q allFin ∸ count P×Q allFin
+                 ≡⟨ cong (λ x → 1 + x ∸ count P×Q allFin) (countf1 n u) ⟩
+                   1 + 1 ∸ count P×Q allFin
+                 ≡⟨ cong (2 ∸_) (∀x⊥-count0 P×Q allFin (¬j≡i-1×i≡j-1 n u)) ⟩ 
+                   2 
                  ∎
 
 
-
-
-
 cycle|E| : ∀ (n : ℕ) → 2|E| (3+ n cycle) ≡ (3 + n) * 2
-cycle|E| n = {!!}
-
-
-{- deg : Fin n → ℕ
-  deg u = count (isDecidableE u) (allFin n)
-
-  2|E| : ℕ
-  2|E| = sum (tabulate {n} deg) -}
+cycle|E| n = begin
+               2|E| (3+ n cycle)
+             ≡⟨⟩
+               sum (tabulate {3 + n} (deg (3+ n cycle)))
+             ≡⟨ cong sum (tabulate-replicate (3 + n) 2 (deg (3+ n cycle)) degCycleN) ⟩
+               sum (replicate (3 + n) 2)
+             ≡⟨ sumReplicate (3 + n) 2 ⟩ 
+               (3 + n) * 2
+             ∎
