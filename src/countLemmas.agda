@@ -30,7 +30,7 @@ private
     A B : Set a
 
 
-countExt : {n : ℕ} {P Q : Pred A p} (P? : Decidable P) (Q? : Decidable Q) → (P ≐ Q) → ∀ (xs : Vec A n) → count P? xs ≡ count Q? xs
+countExt : ∀ {n : ℕ} {P Q : Pred A p} (P? : Decidable P) (Q? : Decidable Q) → (P ≐ Q) → ∀ (xs : Vec A n) → count P? xs ≡ count Q? xs
 countExt P? Q? f [] = refl
 countExt P? Q? f (x ∷ xs) with P? x | Q? x
 ... | yes Px | yes Qx = cong ℕ.suc (countExt P? Q? f xs)
@@ -39,21 +39,21 @@ countExt P? Q? f (x ∷ xs) with P? x | Q? x
 ... | no ¬Px | no ¬Qx = countExt P? Q? f xs
 
 
-compLemma : {P : Pred B p} (P? : Decidable P) (f : A → B) {n : ℕ} (g : Fin n → A) → count P? (tabulate (f ∘ g)) ≡ count (P? ∘ f) (tabulate g)
+compLemma : ∀ {P : Pred B p} (P? : Decidable P) (f : A → B) {n : ℕ} (g : Fin n → A) → count P? (tabulate (f ∘ g)) ≡ count (P? ∘ f) (tabulate g)
 compLemma P? f {ℕ.zero} g = refl
 compLemma P? f {ℕ.suc n₁} g with P? (f (g Fin.zero))
 ... | yes Pfg0 = cong ℕ.suc (compLemma P? f (g ∘ Fin.suc))
 ... | no ¬Pfg0 = compLemma P? f (g ∘ Fin.suc)
 
 
-∀x⊥-count0 : {P : Pred A p} (P? : Decidable P) {n : ℕ} (xs : Vec A n) → (∀ x → P x → ⊥) → count P? xs ≡ 0
+∀x⊥-count0 : ∀ {P : Pred A p} (P? : Decidable P) {n : ℕ} (xs : Vec A n) → (∀ x → P x → ⊥) → count P? xs ≡ 0
 ∀x⊥-count0 P? [] ∀x⊥ = refl
 ∀x⊥-count0 P? (x ∷ xs) ∀x⊥ with P? x
 ... | yes Px = ⊥-elim (∀x⊥ x Px)
 ... | no ¬Px = ∀x⊥-count0 P? xs ∀x⊥
 
 
-count1 : (n : ℕ) (i : Fin n) → count (_≟ i) (allFin n) ≡ 1
+count1 : ∀ (n : ℕ) (i : Fin n) → count (_≟ i) (allFin n) ≡ 1
 count1 (ℕ.suc n₁) Fin.zero = cong ℕ.suc (begin
                                            count {n = n₁} (_≟ Fin.zero) (tabulate Fin.suc) 
                                          ≡⟨ compLemma (λ (j : Fin (1 + n₁)) → j ≟ Fin.zero) Fin.suc id ⟩

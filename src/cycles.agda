@@ -69,6 +69,14 @@ cycleIrrelevant n i j = ⊎-exclusive-irrelevant ≡-irrelevant ≡-irrelevant (
   where open Decidable⇒UIP (_≟_)
 
 
+
+{-
+Uniqueness of Identity Proofs (UIP) states that all proofs of
+equality are themselves equal. In other words, the equality relation
+is irrelevant. Here we define UIP relative to a given type.
+-}
+
+
 3+_cycle : ℕ → EnumeratedFiniteGraph
 3+ n cycle = record
            { n = 3 + n
