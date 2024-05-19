@@ -11,7 +11,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; cong)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Graphs using (EnumeratedFiniteGraph)
 open import Cycles using (_minus1; cycleDecidable; 3+_cycle; ¬j≡i-1×i≡j-1)
-open import countLemmas using (∀x⊥-count0; count1; countf1; count⊎)
+open import countLemmas using (∀x⊥-count≡0; count≡1; countMinus1≡1; count⊎)
 open import MiscLemmas using (sumReplicate; tabulate-replicate)
 open EnumeratedFiniteGraph
 
@@ -30,11 +30,11 @@ degCycleN {n} u = let P = λ v → (v ≟ (u minus1)) in
                    count P⊎Q allFin
                  ≡⟨ count⊎ P Q allFin ⟩
                    count P allFin + count Q allFin ∸ count P×Q allFin
-                 ≡⟨ cong (λ x → x + count Q allFin ∸ count P×Q allFin) (count1 (3 + n) (u minus1)) ⟩
+                 ≡⟨ cong (λ x → x + count Q allFin ∸ count P×Q allFin) (count≡1 (3 + n) (u minus1)) ⟩
                    1 + count Q allFin ∸ count P×Q allFin
-                 ≡⟨ cong (λ x → 1 + x ∸ count P×Q allFin) (countf1 n u) ⟩
+                 ≡⟨ cong (λ x → 1 + x ∸ count P×Q allFin) (countMinus1≡1 n u) ⟩
                    1 + 1 ∸ count P×Q allFin
-                 ≡⟨ cong (2 ∸_) (∀x⊥-count0 P×Q allFin (¬j≡i-1×i≡j-1 n u)) ⟩ 
+                 ≡⟨ cong (2 ∸_) (∀x⊥-count≡0 P×Q allFin (¬j≡i-1×i≡j-1 n u)) ⟩ 
                    2 
                  ∎
 

@@ -64,17 +64,10 @@ cycleDecidable n i j = (j ≟ (i minus1)) ⊎-dec (i ≟ (j minus1))
 ⊎-exclusive-irrelevant irrA irrB ¬A×B (inj₂ y) (inj₁ x) = ⊥-elim (¬A×B (x , y))
 ⊎-exclusive-irrelevant irrA irrB ¬A×B (inj₂ y) (inj₂ y₁) = cong inj₂ (irrB y y₁)
 
+
 cycleIrrelevant : ∀ (n : ℕ) (i j : Fin (3 + n)) → Irrelevant (cycleE n i j)
 cycleIrrelevant n i j = ⊎-exclusive-irrelevant ≡-irrelevant ≡-irrelevant (¬j≡i-1×i≡j-1 _ _ _)
   where open Decidable⇒UIP (_≟_)
-
-
-
-{-
-Uniqueness of Identity Proofs (UIP) states that all proofs of
-equality are themselves equal. In other words, the equality relation
-is irrelevant. Here we define UIP relative to a given type.
--}
 
 
 3+_cycle : ℕ → EnumeratedFiniteGraph

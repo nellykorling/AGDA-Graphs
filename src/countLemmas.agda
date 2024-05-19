@@ -46,35 +46,35 @@ compLemma P? f {ℕ.suc n₁} g with P? (f (g Fin.zero))
 ... | no ¬Pfg0 = compLemma P? f (g ∘ Fin.suc)
 
 
-∀x⊥-count0 : ∀ {P : Pred A p} (P? : Decidable P) {n : ℕ} (xs : Vec A n) → (∀ x → P x → ⊥) → count P? xs ≡ 0
-∀x⊥-count0 P? [] ∀x⊥ = refl
-∀x⊥-count0 P? (x ∷ xs) ∀x⊥ with P? x
+∀x⊥-count≡0 : ∀ {P : Pred A p} (P? : Decidable P) {n : ℕ} (xs : Vec A n) → (∀ x → P x → ⊥) → count P? xs ≡ 0
+∀x⊥-count≡0 P? [] ∀x⊥ = refl
+∀x⊥-count≡0 P? (x ∷ xs) ∀x⊥ with P? x
 ... | yes Px = ⊥-elim (∀x⊥ x Px)
-... | no ¬Px = ∀x⊥-count0 P? xs ∀x⊥
+... | no ¬Px = ∀x⊥-count≡0 P? xs ∀x⊥
 
 
-count1 : ∀ (n : ℕ) (i : Fin n) → count (_≟ i) (allFin n) ≡ 1
-count1 (ℕ.suc n₁) Fin.zero = cong ℕ.suc (begin
+count≡1 : ∀ (n : ℕ) (i : Fin n) → count (_≟ i) (allFin n) ≡ 1
+count≡1 (ℕ.suc n₁) Fin.zero = cong ℕ.suc (begin
                                            count {n = n₁} (_≟ Fin.zero) (tabulate Fin.suc) 
                                          ≡⟨ compLemma (λ (j : Fin (1 + n₁)) → j ≟ Fin.zero) Fin.suc id ⟩
                                            count (λ j → Fin.suc j ≟ Fin.zero) (allFin n₁)
-                                         ≡⟨ ∀x⊥-count0 (λ j → Fin.suc j ≟ Fin.zero) (allFin n₁) (λ j 1+j≡0 → 0≢1+n (sym 1+j≡0)) ⟩     
+                                         ≡⟨ ∀x⊥-count≡0 (λ j → Fin.suc j ≟ Fin.zero) (allFin n₁) (λ j 1+j≡0 → 0≢1+n (sym 1+j≡0)) ⟩     
                                            0                                           
                                          ∎)
-count1 (ℕ.suc n₁) (Fin.suc i) = begin
+count≡1 (ℕ.suc n₁) (Fin.suc i) = begin
                                    count (_≟ Fin.suc i) (tabulate Fin.suc)                                   
                                  ≡⟨ compLemma (λ (j : Fin (1 + n₁)) → j ≟ Fin.suc i) Fin.suc id ⟩                                 
                                    count (λ j → Fin.suc j ≟ Fin.suc i) (allFin n₁)
                                  ≡⟨ countExt (λ j → Fin.suc j ≟ Fin.suc i) (λ j → j ≟ i)
                                              ((λ 1+j≡1+i → suc-injective 1+j≡1+i) , (λ j≡i → cong Fin.suc j≡i)) (allFin n₁) ⟩                                 
                                    count (λ j → j ≟ i) (allFin n₁)                                  
-                                 ≡⟨ count1 n₁ i ⟩                                
+                                 ≡⟨ count≡1 n₁ i ⟩                                
                                    1                                   
                                  ∎
 
 
-countf1 : ∀ (n : ℕ) (i : Fin (3 + n)) → count (λ (j : Fin (3 + n)) → i ≟ j minus1) (allFin (3 + n)) ≡ 1
-countf1 n₁ Fin.zero = cong ℕ.suc (begin
+countMinus1≡1 : ∀ (n : ℕ) (i : Fin (3 + n)) → count (λ (j : Fin (3 + n)) → i ≟ j minus1) (allFin (3 + n)) ≡ 1
+countMinus1≡1 n₁ Fin.zero = cong ℕ.suc (begin
                                     count {n = n₁} (λ j → Fin.zero ≟ j minus1) (tabulate (λ x → Fin.suc (Fin.suc (Fin.suc x))))                                    
                                  ≡⟨ sym (compLemma (λ j → Fin.zero ≟ j) _minus1 {n = n₁}  λ x → Fin.suc (Fin.suc (Fin.suc x))) ⟩                                 
                                    count {n = n₁} (λ j → Fin.zero ≟ j) (tabulate (λ x → inject₁ (Fin.suc (Fin.suc x))))                                  
@@ -82,11 +82,11 @@ countf1 n₁ Fin.zero = cong ℕ.suc (begin
                                    count {n = n₁} (λ j → Fin.zero ≟ inject₁ j) (tabulate (λ x → Fin.suc (Fin.suc x)))
                                  ≡⟨ compLemma (λ (j : Fin (2 + n₁)) → Fin.zero ≟ inject₁ j) Fin.suc Fin.suc ⟩                                
                                    count {n = n₁} (λ j → Fin.zero ≟ Fin.suc (inject₁ j)) (tabulate Fin.suc)
-                                 ≡⟨ ∀x⊥-count0 (λ (j : Fin (1 + n₁)) → Fin.zero ≟ Fin.suc (inject₁ j)) (tabulate Fin.suc)
+                                 ≡⟨ ∀x⊥-count≡0 (λ (j : Fin (1 + n₁)) → Fin.zero ≟ Fin.suc (inject₁ j)) (tabulate Fin.suc)
                                                (λ j 0≡1+j → 0≢1+n 0≡1+j) ⟩
                                    0                                   
                                  ∎)
-countf1 n₁ (Fin.suc Fin.zero) = cong ℕ.suc (begin
+countMinus1≡1 n₁ (Fin.suc Fin.zero) = cong ℕ.suc (begin
                                               count {n = n₁} (λ j → Fin.suc Fin.zero ≟ j minus1) (tabulate (λ x → Fin.suc (Fin.suc (Fin.suc x))))                       
                                             ≡⟨ sym (compLemma (Fin.suc Fin.zero ≟_) _minus1 {n = n₁} λ x → Fin.suc (Fin.suc (Fin.suc x))) ⟩                            
                                               count {n = n₁} (Fin.suc Fin.zero ≟_) (tabulate (λ x → inject₁ (Fin.suc (Fin.suc x))))
@@ -99,10 +99,10 @@ countf1 n₁ (Fin.suc Fin.zero) = cong ℕ.suc (begin
                                               count {n = n₁} (λ j → Fin.zero ≟ inject₁ j) (tabulate Fin.suc)   
                                             ≡⟨ compLemma (λ (j : Fin (1 + n₁)) → Fin.zero ≟ inject₁ j) Fin.suc id ⟩
                                               count (λ j → Fin.zero ≟ Fin.suc (inject₁ j)) (allFin n₁)
-                                            ≡⟨ ∀x⊥-count0 (λ j → Fin.zero ≟ Fin.suc (inject₁ j)) (allFin n₁) (λ j 0≡1+j → 0≢1+n 0≡1+j) ⟩ 
+                                            ≡⟨ ∀x⊥-count≡0 (λ j → Fin.zero ≟ Fin.suc (inject₁ j)) (allFin n₁) (λ j 0≡1+j → 0≢1+n 0≡1+j) ⟩ 
                                               0                                
                                             ∎)
-countf1 n₁ (Fin.suc (Fin.suc i)) with i ≟ fromℕ n₁
+countMinus1≡1 n₁ (Fin.suc (Fin.suc i)) with i ≟ fromℕ n₁
 ... | yes i≡fromℕ = cong ℕ.suc (begin
                             count {n = n₁} (λ j → Fin.suc (Fin.suc i) ≟ j minus1) (tabulate (λ x → Fin.suc (Fin.suc (Fin.suc x))))                      
                           ≡⟨ sym (compLemma (Fin.suc (Fin.suc i) ≟_) _minus1 (λ x → Fin.suc (Fin.suc (Fin.suc x)))) ⟩
@@ -117,7 +117,7 @@ countf1 n₁ (Fin.suc (Fin.suc i)) with i ≟ fromℕ n₁
                             count (fromℕ n₁ ≟_) (tabulate inject₁)  
                           ≡⟨ compLemma (fromℕ n₁ ≟_) inject₁ id ⟩
                             count (λ j → fromℕ n₁ ≟ inject₁ j) (allFin n₁)
-                          ≡⟨ ∀x⊥-count0 (λ j → fromℕ n₁ ≟ inject₁ j) (allFin n₁) (λ j fromℕ≡j → fromℕ≢inject₁ fromℕ≡j) ⟩ 
+                          ≡⟨ ∀x⊥-count≡0 (λ j → fromℕ n₁ ≟ inject₁ j) (allFin n₁) (λ j fromℕ≡j → fromℕ≢inject₁ fromℕ≡j) ⟩ 
                             0  
                           ∎ )
 ... | no ¬i≡fromℕ = let (i' , i≡inject₁i') = last≢inject₁ n₁ i ¬i≡fromℕ in
@@ -140,7 +140,7 @@ countf1 n₁ (Fin.suc (Fin.suc i)) with i ≟ fromℕ n₁
                       count (i' ≟_) (allFin n₁)
                     ≡⟨ countExt (i' ≟_) (_≟ i') ((λ i'≡j → sym i'≡j) , λ j≡i' → sym j≡i') (allFin n₁) ⟩
                       count (_≟ i') (allFin n₁)
-                    ≡⟨ count1 n₁ i' ⟩
+                    ≡⟨ count≡1 n₁ i' ⟩
                       1
                     ∎
 
